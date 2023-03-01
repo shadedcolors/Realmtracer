@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class SpellScript : MonoBehaviour
 {
@@ -14,11 +16,23 @@ public class SpellScript : MonoBehaviour
     //Get Queue Spell Prefab
     [SerializeField] private GameObject queueSpellPrefab;
 
+    //Get Spell Cooldown Image
+    [SerializeField] public Image spellCooldownImage;
+
+    //Get Spell Cooldown Text
+    [SerializeField] public TextMeshProUGUI spellCooldownText;
+
     //Spell Owner
     private GameObject spellOwner;
 
     //Spell Target
     private GameObject spellTarget; //make this a list when you need multiple enemies at once
+
+    //Spell Owner Sprites
+    [SerializeField] private Sprite playerOwnedSprite;
+    [SerializeField] private Sprite enemyOwnedSprite;
+
+    [SerializeField] public Image nextSpellOutline;
 
     //-------Spell Effects-------
     private bool dealsDamage;
@@ -27,6 +41,7 @@ public class SpellScript : MonoBehaviour
     //-------Spell Stats-------
     private float spellManaCost;
     private float spellCooldown;
+    public float spellCooldownAmount;
     private float spellMaxUsesPerCombat;
     private float spellMaxUsesPerGame;
     private string spellType;
@@ -71,6 +86,12 @@ public class SpellScript : MonoBehaviour
         set { spellCooldown = value; }
     }
 
+    public float SpellCooldownAmount
+    {
+        get { return spellCooldownAmount; }
+        set { spellCooldownAmount = value; }
+    }
+
     public float SpellMaxUsesPerCombat
     {
         get { return spellMaxUsesPerCombat; }
@@ -89,6 +110,16 @@ public class SpellScript : MonoBehaviour
         set { spellType = value; }
     }
 
+    private void Awake()
+    {
+        //Set Cooldown info
+        spellCooldownImage.enabled = false;
+        spellCooldownText.enabled = false;
+
+        //Disable Next Spell Outline
+        nextSpellOutline.enabled = false;
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -99,35 +130,94 @@ public class SpellScript : MonoBehaviour
         spellQueuePanel = GameObject.Find("Spell Queue Panel");
     }
 
-    //Put Spell On Queue
-    public void AddSpellToQueue()
+    private void Update()
     {
-        //Check for open slot in spell queue
-        int filledQueueSlots = 0;
-
-        for (int i = 0; i < gameManager.SpellQueueLength; i++)
+        //Do Cooldown
+        if (spellCooldownAmount > 0)
         {
-            if (gameManager.spellQueueList[i] != null)
+            spellCooldownAmount -= Time.deltaTime;
+        }
+        else
+        {
+            spellCooldownImage.enabled = false;
+            spellCooldownText.enabled = false;
+        }
+
+        spellCooldownImage.fillAmount = spellCooldownAmount / spellCooldown;
+        spellCooldownText.text = Mathf.Round(spellCooldownAmount).ToString();
+
+    }
+
+    public void ButtonAddSpellToQueue()
+    {
+        AddSpellToQueue();
+    }
+
+    //Put Spell On Queue
+    public bool AddSpellToQueue()
+    {
+        //Check if player is on cooldown
+        if (!spellCooldownImage.enabled)
+        {
+            //Check for open slot in spell queue
+            if (spellQueuePanel.transform.childCount < gameManager.SpellQueueLength)
             {
-                filledQueueSlots++;
+                //Create queue spell
+                var newQueueSpell = Instantiate(queueSpellPrefab, spellQueuePanel.transform);
+
+                //Add Icon to queue spell
+                newQueueSpell.GetComponent<Image>().sprite = transform.Find("Spell Sprite").GetComponent<Image>().sprite;
+
+                //Connect Queue Spell to Spell
+                newQueueSpell.GetComponent<QueueSpellScript>().spell = gameObject;
+
+                //color the queue spell depending on the owner
+                if (SpellOwner == gameManager.gameObject)
+                {
+                    newQueueSpell.transform.GetChild(0).GetComponent<Image>().sprite = playerOwnedSprite;
+                }
+                else
+                {
+                    newQueueSpell.transform.GetChild(0).GetComponent<Image>().sprite = enemyOwnedSprite;
+                }
+
+                gameManager.IsQueueEmpty = false;
+
+                //Set cooldown for player
+                if (spellOwner == gameManager.gameObject)
+                {
+                    for (int i = 0; i < gameManager.spellInventoryPanel.transform.childCount; i++)
+                    {
+                        gameManager.spellInventoryPanel.transform.GetChild(i).GetComponent<SpellScript>().spellCooldownImage.enabled = true;
+                        gameManager.spellInventoryPanel.transform.GetChild(i).GetComponent<SpellScript>().spellCooldownText.enabled = true;
+                        gameManager.spellInventoryPanel.transform.GetChild(i).GetComponent<SpellScript>().spellCooldownAmount = spellCooldown;
+                    } 
+                }
+                //Set cooldown for enemy
+                else
+                {
+                    for (int i = 0; i < spellOwner.GetComponent<EnemyScript>().enemySpellInventoryPanel.transform.childCount; i++)
+                    {
+                        spellOwner.GetComponent<EnemyScript>().enemySpellInventoryPanel.transform.GetChild(i).GetComponent<SpellScript>().spellCooldownImage.enabled = true;
+                        spellOwner.GetComponent<EnemyScript>().enemySpellInventoryPanel.transform.GetChild(i).GetComponent<SpellScript>().spellCooldownText.enabled = true;
+                        spellOwner.GetComponent<EnemyScript>().enemySpellInventoryPanel.transform.GetChild(i).GetComponent<SpellScript>().spellCooldownAmount = spellCooldown;
+                    }
+                }
+
+                return true;
+            }  
+            else
+            {
+                Debug.Log("No Space in Queue");
+                return false;
             }
         }
-
-        //If a slot is open...
-        if (filledQueueSlots < gameManager.SpellQueueLength)
-        {
-            //Add spell to queue
-            gameManager.spellQueueList[filledQueueSlots] = gameObject;
-            var newQueueSpell = Instantiate(queueSpellPrefab, spellQueuePanel.transform);
-
-            //Add Icon to queue spell
-            newQueueSpell.GetComponent<Image>().sprite = transform.Find("Spell Sprite").GetComponent<Image>().sprite;
-        }
+        return false;
     }
 
     //Activate the spell's effect (when first in the queue)
     public void ActivateSpell()
     {
-
+        Debug.Log("Activate!");
     }
 }

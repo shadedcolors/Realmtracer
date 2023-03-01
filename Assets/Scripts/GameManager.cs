@@ -16,16 +16,16 @@ public class GameManager : MonoBehaviour
 
     //Panels
     [SerializeField] private GameObject enemyPanel;
-    [SerializeField] private GameObject spellInventoryPanel;
+    [SerializeField] public GameObject spellInventoryPanel;
+    [SerializeField] private GameObject spellQueuePanel;
 
     //All Spell Icons
     [SerializeField] private Sprite[] allSpellImages;
 
+    //Toggle Combat
+    public bool inCombat = false;
 
     //-------SPELL QUEUE STUFF-------
-    //Spell Queue List
-    public GameObject[] spellQueueList;
-
     //Spell Queue Length
     private int spellQueueLength = 5;
 
@@ -33,7 +33,7 @@ public class GameManager : MonoBehaviour
     private float spellQueueTimeAmount = 10.0f;
 
     //Empty Queue check
-    private bool isQueueEmpty;
+    private bool isQueueEmpty = true;
 
     //-------Player Stats-------
 
@@ -51,45 +51,84 @@ public class GameManager : MonoBehaviour
         set { spellQueueTimeAmount = value; }
     }
 
+    public bool IsQueueEmpty
+    {
+        get { return isQueueEmpty; }
+        set { isQueueEmpty = value; }
+    }
+
     private void Start()
     {
-        //Set Spell Queue size at start of a battle...
-        spellQueueList = new GameObject[spellQueueLength]; //CHANGE THIS LATER FOR EACH BATTLE using spellQueueLength (OR FOR DIFFERENT WAYS THE QUEUE CAN GROW) !
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        //-------Progress Bar Tests-------
-        healthSphere.fillAmount -= 0.00024f;
-        manaSphere.fillAmount -= 0.0001f;
-
-        spellQueueTimer.fillAmount -= 1.0f / spellQueueTimeAmount * Time.deltaTime;
-
-        //Activate Spell after spell queue progress bar ends
-        if (spellQueueTimer.fillAmount <= 0)
+        //Check if in Combat
+        if (inCombat)
         {
-            //spellQueueList[0] = null;
+            //-------Progress Bar Tests-------
+            healthSphere.fillAmount -= 0.00024f;
+            manaSphere.fillAmount -= 0.0001f;
 
-            //Reset spell queue progress bar
-            spellQueueTimer.fillAmount = 1;
+            //-------Do spell queue timer stuff-------
+            //If the queue is not empty...
+            if (!IsQueueEmpty)
+            {
+                //Count down
+                spellQueueTimer.fillAmount -= 1.0f / spellQueueTimeAmount * Time.deltaTime;
+
+                //If queue timer is over...
+                if (spellQueueTimer.fillAmount <= 0)
+                {
+                    //Check if the spell queue is empty
+                    if (spellQueuePanel.transform.childCount <= 1)
+                    {
+                        IsQueueEmpty = true;
+                    }
+
+                    //Activate First Spell
+                    spellQueuePanel.transform.GetChild(0).gameObject.GetComponent<QueueSpellScript>().spell.GetComponent<SpellScript>().ActivateSpell();
+
+                    //Unparent Queue Spell before destroying
+                    //spellQueuePanel.transform.GetChild(0).parent = null;
+
+                    //Delete Queue Spell from Queue
+                    Destroy(spellQueuePanel.transform.GetChild(0).gameObject);
+
+                    //Reset spell queue progress bar
+                    spellQueueTimer.fillAmount = 1;
+
+                    Debug.Log(spellQueuePanel.transform.childCount);
+                }
+            }
+        }
+
+        //Toggle Combat
+        if (Input.GetKeyDown(KeyCode.S))
+        {
+            inCombat = !inCombat;
         }
 
         //-------Player Spell Creation Test-------
         if (Input.GetKeyDown(KeyCode.Tab))
         {
-            CreateSpell(spellInventoryPanel);
+            CreateSpell(spellInventoryPanel, gameObject);
         }
 
         //-------Enemy Creation Test-------
         if (Input.GetKeyDown(KeyCode.E))
         {
             var newEnemy = Instantiate(enemyPrefab, enemyPanel.transform);
+
+            newEnemy.GetComponent<EnemyScript>().SpellCastInterval = 3f;
+            newEnemy.GetComponent<EnemyScript>().SpellCastPreCooldown = 1f;
         }
     }
     
     //Create Spell Test
-    public void CreateSpell(GameObject panel)
+    public void CreateSpell(GameObject panel, GameObject owner)
     {
         //Create New Spell
         var newSpell = Instantiate(spellPrefab, panel.transform);
@@ -98,7 +137,7 @@ public class GameManager : MonoBehaviour
         newSpell.transform.Find("Spell Sprite").GetComponent<Image>().sprite = allSpellImages[Random.Range(0, allSpellImages.Length)]; //Change this to a set value later!
 
         //Set Spell Owner
-        newSpell.GetComponent<SpellScript>().SpellOwner = gameObject;
+        newSpell.GetComponent<SpellScript>().SpellOwner = owner;
 
         //Set Spell Target
         newSpell.GetComponent<SpellScript>().SpellTarget = null; //Add this later!
@@ -111,7 +150,7 @@ public class GameManager : MonoBehaviour
         newSpell.GetComponent<SpellScript>().SpellManaCost = 1;
 
         //Set Spell Cooldown
-        newSpell.GetComponent<SpellScript>().SpellCooldown = 1;
+        newSpell.GetComponent<SpellScript>().SpellCooldown = 4;
 
         //Set Spell Max Uses Per Combat
         newSpell.GetComponent<SpellScript>().SpellMaxUsesPerCombat = -1;

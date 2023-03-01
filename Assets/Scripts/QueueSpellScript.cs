@@ -4,5 +4,5 @@ using UnityEngine;
 
 public class QueueSpellScript : MonoBehaviour
 {
-    
+    public GameObject spell;
 }

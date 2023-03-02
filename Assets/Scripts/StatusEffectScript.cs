@@ -10,7 +10,10 @@ public class StatusEffectScript : MonoBehaviour
 
     //Owner
     public GameObject ownerObject;
-    private float ownerHealth;
+
+    //Owner Stats
+    private Image ownerHealthFillAmount;
+    private float ownerMaxHealth;
 
     //ICONS
     [SerializeField] private Sprite regenerateIcon;
@@ -46,13 +49,16 @@ public class StatusEffectScript : MonoBehaviour
 
     private void Start()
     {
-        if (ownerObject == GameObject.Find("Game Manager"))
+        //Get Owner Health
+        if (ownerObject == GameObject.Find("Game Manager").gameObject)
         {
-            var ownerScript = ownerObject.GetComponent<GameManager>();
+            ownerHealthFillAmount = ownerObject.GetComponent<GameManager>().healthSphere;
+            ownerMaxHealth = ownerObject.GetComponent<GameManager>().PlayerHealth;
         }
         else
         {
-            var ownerScript = ownerObject.GetComponent<EnemyScript>();
+            ownerHealthFillAmount = ownerObject.GetComponent<EnemyScript>().enemyHealthBar;
+            ownerMaxHealth = ownerObject.GetComponent<EnemyScript>().EnemyHealth;
         }
 
         //SET ICON
@@ -72,16 +78,11 @@ public class StatusEffectScript : MonoBehaviour
             {
                 regenerateTimer += Time.deltaTime;
 
-                //If the status effect is in the player's status effect panel...
-                if (ownerObject == GameObject.Find("Game Manager"))
-                {
-                    ownerObject.GetComponent<GameManager>().PlayerHealth += RegenerateAmountPerSecond * Time.deltaTime;
-                }
-                else
-                {
-                    ownerObject.GetComponent<EnemyScript>().EnemyHealth += RegenerateAmountPerSecond * Time.deltaTime;
-                }
-                
+                ownerHealthFillAmount.fillAmount += (RegenerateAmountPerSecond * Time.deltaTime) / ownerMaxHealth;
+            }
+            else
+            {
+                Destroy(gameObject);
             }
         }
     }

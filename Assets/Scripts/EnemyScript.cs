@@ -143,7 +143,6 @@ public class EnemyScript : MonoBehaviour
             if (SpellCastIntervalTimer > 0)
             {
                 SpellCastIntervalTimer -= Time.deltaTime;
-                Debug.Log("Interval: " + SpellCastIntervalTimer);
             }
             else
             {
@@ -165,7 +164,6 @@ public class EnemyScript : MonoBehaviour
 
             //Count PreCooldown
             SpellCastPreCooldownTimer -= Time.deltaTime;
-            Debug.Log("Cooldown: " + SpellCastPreCooldownTimer);
         }
         else
         {

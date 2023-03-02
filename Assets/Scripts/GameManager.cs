@@ -40,8 +40,8 @@ public class GameManager : MonoBehaviour
     private bool isQueueEmpty = true;
 
     //-------Player Stats-------
-    private int playerHealth = 15;
-    private int playerMana = 15;
+    private float playerHealth = 15;
+    private float playerMana = 15;
 
     //-------Properties-------
     public int SpellQueueLength
@@ -62,13 +62,13 @@ public class GameManager : MonoBehaviour
         set { isQueueEmpty = value; }
     }
 
-    public int PlayerHealth
+    public float PlayerHealth
     {
         get { return playerHealth; }
         set { playerHealth = value; }
     }
 
-    public int PlayerMana
+    public float PlayerMana
     {
         get { return playerMana; }
         set { playerMana = value; }
@@ -76,7 +76,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-
+        
     }
 
     // Update is called once per frame
@@ -140,7 +140,7 @@ public class GameManager : MonoBehaviour
 
             newEnemy.GetComponent<EnemyScript>().SpellCastInterval = 1f;
             newEnemy.GetComponent<EnemyScript>().SpellCastPreCooldown = 2f;
-            newEnemy.GetComponent<EnemyScript>().EnemyHealth = 15;
+            newEnemy.GetComponent<EnemyScript>().EnemyHealth = 10f;
 
             listOfEnemies.Add(newEnemy);
         }
@@ -166,8 +166,8 @@ public class GameManager : MonoBehaviour
         newSpell.DamageAmount = 1;
 
         newSpell.RegenerateEffect = true;
-        newSpell.RegenerateAmountPerSecond = 1;
-        newSpell.RegenerateTotalTime = 4;
+        newSpell.RegenerateAmountPerSecond = 1f;
+        newSpell.RegenerateTotalTime = 5f;
 
         //Set Spell Mana Cost
         newSpell.SpellManaCost = 1;

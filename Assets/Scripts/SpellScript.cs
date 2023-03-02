@@ -13,6 +13,8 @@ public class SpellScript : MonoBehaviour
     //Get Spell Queue Panel
     private GameObject spellQueuePanel;
 
+    [SerializeField] private GameObject statusEffectPrefab;
+
     //Get Queue Spell Prefab
     [SerializeField] private GameObject queueSpellPrefab;
 
@@ -21,6 +23,11 @@ public class SpellScript : MonoBehaviour
 
     //Get Spell Cooldown Text
     [SerializeField] public TextMeshProUGUI spellCooldownText;
+
+    //Get Spell PreCooldown Text
+    [SerializeField] public TextMeshProUGUI spellPreCooldownText;
+
+    [SerializeField] public Image spellPreCooldownShade;
 
     //Spell Owner
     private GameObject spellOwner;
@@ -32,11 +39,16 @@ public class SpellScript : MonoBehaviour
     [SerializeField] private Sprite playerOwnedSprite;
     [SerializeField] private Sprite enemyOwnedSprite;
 
+    //Next Spell To Use Outline
     [SerializeField] public Image nextSpellOutline;
 
     //-------Spell Effects-------
     private bool dealsDamage;
     private float damageAmount;
+
+    private bool regenerateEffect;
+    private float regenerateAmountPerSecond;
+    private float regenerateTotalTime;
 
     //-------Spell Stats-------
     private float spellManaCost;
@@ -71,6 +83,24 @@ public class SpellScript : MonoBehaviour
     {
         get { return damageAmount; }
         set { damageAmount = value; }
+    }
+
+    public bool RegenerateEffect
+    {
+        get { return regenerateEffect; }
+        set { regenerateEffect = value; }
+    }
+
+    public float RegenerateAmountPerSecond
+    {
+        get { return regenerateAmountPerSecond; }
+        set { regenerateAmountPerSecond = value; }
+    }
+
+    public float RegenerateTotalTime
+    {
+        get { return regenerateTotalTime; }
+        set { regenerateTotalTime = value; }
     }
 
     //Spell Stats Properties
@@ -112,9 +142,12 @@ public class SpellScript : MonoBehaviour
 
     private void Awake()
     {
-        //Set Cooldown info
+        //Set Cooldown Info
         spellCooldownImage.enabled = false;
         spellCooldownText.enabled = false;
+
+        //Set PreCooldown Info
+        spellPreCooldownText.enabled = false;
 
         //Disable Next Spell Outline
         nextSpellOutline.enabled = false;
@@ -132,6 +165,11 @@ public class SpellScript : MonoBehaviour
 
     private void Update()
     {
+        DoCooldown();
+    }
+
+    public void DoCooldown()
+    {
         //Do Cooldown
         if (spellCooldownAmount > 0)
         {
@@ -145,12 +183,16 @@ public class SpellScript : MonoBehaviour
 
         spellCooldownImage.fillAmount = spellCooldownAmount / spellCooldown;
         spellCooldownText.text = Mathf.Round(spellCooldownAmount).ToString();
-
     }
 
+    //Player Spell (Click On The Spell Button)
     public void ButtonAddSpellToQueue()
     {
-        AddSpellToQueue();
+        //Only allow clicking on a spell if the owner is the player
+        if (spellOwner == gameManager.gameObject)
+        {
+            AddSpellToQueue();
+        }
     }
 
     //Put Spell On Queue
@@ -218,6 +260,49 @@ public class SpellScript : MonoBehaviour
     //Activate the spell's effect (when first in the queue)
     public void ActivateSpell()
     {
-        Debug.Log("Activate!");
+        //If Spell deals damage...
+        if (DealsDamage == true)
+        {
+            //If the spell target is an enemy...
+            if (spellTarget != gameManager.gameObject)
+            {
+                //Damage the target enemy
+                spellTarget.GetComponent<EnemyScript>().enemyHealthBar.fillAmount -= DamageAmount / spellTarget.GetComponent<EnemyScript>().EnemyHealth;
+            }
+            else
+            {
+                //Otherwise damage the player
+                spellTarget.GetComponent<GameManager>().healthSphere.fillAmount -= DamageAmount / spellTarget.GetComponent<GameManager>().PlayerHealth;
+            }
+        }
+
+        //Get the correct Status Effect Panel
+        GameObject ownerPanel = GetStatusEffectPanel();
+
+        //Regenerate
+        if (RegenerateEffect)
+        {
+            var statusEffect = Instantiate(statusEffectPrefab, ownerPanel.transform).GetComponent<StatusEffectScript>();
+
+            statusEffect.ownerPanel = ownerPanel;
+            statusEffect.ownerObject = SpellOwner;
+
+            statusEffect.RegenerateEffect = RegenerateEffect;
+            statusEffect.RegenerateAmountPerSecond = RegenerateAmountPerSecond;
+            statusEffect.RegenerateTotalTime = RegenerateTotalTime;
+        }
+    }
+
+    public GameObject GetStatusEffectPanel()
+    {
+        //Get spell owner
+        if (SpellOwner == gameManager.gameObject)
+        {
+            return SpellOwner.GetComponent<GameManager>().statusEffectPanel;
+        }
+        else
+        {
+            return SpellOwner.GetComponent<EnemyScript>().enemyStatusEffectPanel;
+        }
     }
 }

@@ -15,9 +15,10 @@ public class EnemyScript : MonoBehaviour
 
     //Panels
     [SerializeField] public GameObject enemySpellInventoryPanel;
+    [SerializeField] public GameObject enemyStatusEffectPanel;
 
     //Enemy Health Bar
-    private Image enemyHealthBar;
+    public Image enemyHealthBar;
 
     //Enemy Name Text
     private TMP_Text enemyNameText;
@@ -29,7 +30,7 @@ public class EnemyScript : MonoBehaviour
     [SerializeField] private Sprite[] allEnemyImages;
 
     //Next Spell Chosen
-    private GameObject nextSpellToUse;
+    private SpellScript nextSpellToUse;
 
     //-------Enemy Stats-------
 
@@ -40,6 +41,9 @@ public class EnemyScript : MonoBehaviour
     //Spell Cast PreCooldown
     private float spellCastPreCooldown;
     private float spellCastPreCooldownTimer;
+
+    //Health
+    private float enemyHealth;
 
     //-------Properties-------
     public float SpellCastInterval
@@ -64,6 +68,12 @@ public class EnemyScript : MonoBehaviour
     {
         get { return spellCastPreCooldownTimer; }
         set { spellCastPreCooldownTimer = value; }
+    }
+
+    public float EnemyHealth
+    {
+        get { return enemyHealth; }
+        set { enemyHealth = value; }
     }
 
     // Start is called before the first frame update
@@ -91,14 +101,11 @@ public class EnemyScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //Enemy Health Test
-        enemyHealthBar.fillAmount -= 0.00024f;
-
         //Enemy Spell Creation Test
         //-------Player Spell Creation Test-------
         if (Input.GetKeyDown(KeyCode.R))
         {
-            gameManager.CreateSpell(enemySpellInventoryPanel, gameObject);
+            gameManager.CreateSpell(enemySpellInventoryPanel, gameObject, gameManager.gameObject);
         }
 
         //Choose Next Spell to use
@@ -123,33 +130,14 @@ public class EnemyScript : MonoBehaviour
             enemySpellInventoryPanel.transform.GetChild(randomSpell).GetComponent<SpellScript>().nextSpellOutline.enabled = true;
 
             //Save Next Spell to use
-            nextSpellToUse = enemySpellInventoryPanel.transform.GetChild(randomSpell).gameObject;
-        }
-    }
-
-    public void AddSpellToQueue()
-    {
-        //Check for cooldown before adding the spell to the queue
-        if (nextSpellToUse.GetComponent<SpellScript>().spellCooldownAmount <= 0)
-        {
-            if (nextSpellToUse.GetComponent<SpellScript>().AddSpellToQueue())
-            {
-                //Hide Next Spell Outline
-                for (int i = 0; i < enemySpellInventoryPanel.transform.childCount; i++)
-                {
-                    enemySpellInventoryPanel.transform.GetChild(i).GetComponent<SpellScript>().nextSpellOutline.enabled = false;
-                }
-
-                //Reset Next Spell to use
-                nextSpellToUse = null;
-            }
+            nextSpellToUse = enemySpellInventoryPanel.transform.GetChild(randomSpell).gameObject.GetComponent<SpellScript>();
         }
     }
 
     public void DoSpellCastInterval()
     {
         //If not on cooldown...
-        if (nextSpellToUse.GetComponent<SpellScript>().SpellCooldownAmount <= 0)
+        if (nextSpellToUse.SpellCooldownAmount <= 0)
         {
             //Count down Spell Cast Interval
             if (SpellCastIntervalTimer > 0)
@@ -168,15 +156,47 @@ public class EnemyScript : MonoBehaviour
     {
         if (SpellCastPreCooldownTimer > 0)
         {
+            //Shade Spell
+
+
+            //Show PreCooldown Number
+            nextSpellToUse.spellPreCooldownText.enabled = true;
+            nextSpellToUse.spellPreCooldownText.text = Mathf.Round(SpellCastPreCooldownTimer).ToString();
+
+            //Count PreCooldown
             SpellCastPreCooldownTimer -= Time.deltaTime;
             Debug.Log("Cooldown: " + SpellCastPreCooldownTimer);
         }
         else
         {
+            //Disable PreCooldown Number
+            nextSpellToUse.spellPreCooldownText.enabled = false;
+
+            //Add Spell to Queue When PreCooldown is done
             AddSpellToQueue(); //Draw red or green to determine success
 
+            //Reset Spell Cast Interval and PreCooldown
             SpellCastIntervalTimer = SpellCastInterval;
             SpellCastPreCooldownTimer = SpellCastPreCooldown;
+        }
+    }
+
+    public void AddSpellToQueue()
+    {
+        //Check for cooldown before adding the spell to the queue
+        if (nextSpellToUse.spellCooldownAmount <= 0)
+        {
+            if (nextSpellToUse.AddSpellToQueue())
+            {
+                //Hide Next Spell Outline
+                for (int i = 0; i < enemySpellInventoryPanel.transform.childCount; i++)
+                {
+                    enemySpellInventoryPanel.transform.GetChild(i).GetComponent<SpellScript>().nextSpellOutline.enabled = false;
+                }
+
+                //Reset Next Spell to use
+                nextSpellToUse = null;
+            }
         }
     }
 }

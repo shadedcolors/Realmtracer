@@ -5,8 +5,11 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
+    //Tooltip
+    [SerializeField] private TooltipScript tooltip;
+
     //Progress Bars
-    [SerializeField] public Image healthSphere;
+    [SerializeField] private Image healthImage;
     [SerializeField] public Image manaSphere;
     [SerializeField] private Image spellQueueTimer;
 
@@ -40,8 +43,10 @@ public class GameManager : MonoBehaviour
     private bool isQueueEmpty = true;
 
     //-------Player Stats-------
-    private float playerHealth = 15;
-    private float playerMana = 15;
+    private float maxHealth = 15;
+    private float curHealth = 15;
+    private float maxMana = 15;
+    private float curMana = 15;
 
     //-------Properties-------
     public int SpellQueueLength
@@ -62,16 +67,36 @@ public class GameManager : MonoBehaviour
         set { isQueueEmpty = value; }
     }
 
-    public float PlayerHealth
+    public float MaxHealth
     {
-        get { return playerHealth; }
-        set { playerHealth = value; }
+        get { return maxHealth; }
+        set { maxHealth = value; }
     }
 
-    public float PlayerMana
+    public float CurHealth
     {
-        get { return playerMana; }
-        set { playerMana = value; }
+        get { return curHealth; }
+        set { curHealth = value;
+            if (curHealth < 0) { curHealth = 0; }
+            if (curHealth > MaxHealth) { curHealth = MaxHealth; }
+        }
+    }
+
+    public float MaxMana
+    {
+        get { return maxMana; }
+        set { maxMana = value; }
+    }
+
+    public float CurMana
+    {
+        get { return curMana; }
+        set
+        {
+            curMana = value;
+            if (curMana < 0) { curMana = 0; }
+            if (curMana > maxMana) { curMana = maxMana; }
+        }
     }
 
     private void Start()
@@ -85,15 +110,15 @@ public class GameManager : MonoBehaviour
         //Check if in Combat
         if (inCombat)
         {
-            //-------Progress Bar Tests-------
-            //manaSphere.fillAmount -= 0.0001f;
+            healthImage.fillAmount = CurHealth / MaxHealth;
+            Debug.Log(healthImage.fillAmount);
 
             //-------Do spell queue timer stuff-------
             //If the queue is not empty...
             if (!IsQueueEmpty)
             {
                 //Count down
-                spellQueueTimer.fillAmount -= 1.0f / spellQueueTimeAmount * Time.deltaTime;
+                spellQueueTimer.fillAmount -= 1.0f / SpellQueueTimeAmount * Time.deltaTime;
 
                 //If queue timer is over...
                 if (spellQueueTimer.fillAmount <= 0)
@@ -136,13 +161,13 @@ public class GameManager : MonoBehaviour
         //-------Enemy Creation Test-------
         if (Input.GetKeyDown(KeyCode.E))
         {
-            var newEnemy = Instantiate(enemyPrefab, enemyPanel.transform);
+            EnemyScript newEnemy = Instantiate(enemyPrefab, enemyPanel.transform).GetComponent<EnemyScript>();
 
-            newEnemy.GetComponent<EnemyScript>().SpellCastInterval = 1f;
-            newEnemy.GetComponent<EnemyScript>().SpellCastPreCooldown = 2f;
-            newEnemy.GetComponent<EnemyScript>().EnemyHealth = 10f;
+            newEnemy.SpellCastInterval = 1f;
+            newEnemy.SpellCastPreCooldown = 2f;
+            newEnemy.MaxHealth = 10f;
 
-            listOfEnemies.Add(newEnemy);
+            listOfEnemies.Add(newEnemy.gameObject);
         }
     }
     
@@ -150,10 +175,12 @@ public class GameManager : MonoBehaviour
     public void CreateSpell(GameObject panel, GameObject owner, GameObject target)
     {
         //Create New Spell
-        var newSpell = Instantiate(spellPrefab, panel.transform).GetComponent<SpellScript>();
+        SpellScript newSpell = Instantiate(spellPrefab, panel.transform).GetComponent<SpellScript>();
 
         //Set Spell Icon
         newSpell.transform.Find("Spell Sprite").GetComponent<Image>().sprite = allSpellImages[Random.Range(0, allSpellImages.Length)]; //Change this to a set value later!
+
+        newSpell.spellName = "Slash";
 
         //Set Spell Owner
         newSpell.SpellOwner = owner;
@@ -163,11 +190,11 @@ public class GameManager : MonoBehaviour
             
         //Set Spell Effect - Damage
         newSpell.DealsDamage = true;
-        newSpell.DamageAmount = 1;
+        newSpell.DamageAmount = 10;
 
         newSpell.RegenerateEffect = true;
         newSpell.RegenerateAmountPerSecond = 1f;
-        newSpell.RegenerateTotalTime = 5f;
+        newSpell.RegenerateTotalTime = 4f;
 
         //Set Spell Mana Cost
         newSpell.SpellManaCost = 1;

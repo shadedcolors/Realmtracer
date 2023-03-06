@@ -6,14 +6,16 @@ using UnityEngine.UI;
 public class StatusEffectScript : MonoBehaviour
 {
     //Owner Panel
-    public GameObject ownerPanel;
+    //public GameObject ownerPanel;
 
     //Owner
-    public GameObject ownerObject;
+    public GameObject statusEffectOwner;
 
     //Owner Stats
-    private Image ownerHealthFillAmount;
-    private float ownerMaxHealth;
+    private bool isPlayer;
+
+    private GameManager playerScript;
+    private EnemyScript enemyScript;
 
     //ICONS
     [SerializeField] private Sprite regenerateIcon;
@@ -49,16 +51,18 @@ public class StatusEffectScript : MonoBehaviour
 
     private void Start()
     {
-        //Get Owner Health
-        if (ownerObject == GameObject.Find("Game Manager").gameObject)
+        //Get Scripts
+        playerScript = statusEffectOwner.GetComponent<GameManager>();
+        enemyScript = statusEffectOwner.GetComponent<EnemyScript>();
+
+        //Get Owner
+        if (statusEffectOwner == GameObject.Find("Game Manager").gameObject)
         {
-            ownerHealthFillAmount = ownerObject.GetComponent<GameManager>().healthSphere;
-            ownerMaxHealth = ownerObject.GetComponent<GameManager>().PlayerHealth;
+            isPlayer = true;
         }
         else
         {
-            ownerHealthFillAmount = ownerObject.GetComponent<EnemyScript>().enemyHealthBar;
-            ownerMaxHealth = ownerObject.GetComponent<EnemyScript>().EnemyHealth;
+            isPlayer = false;
         }
 
         //SET ICON
@@ -71,17 +75,27 @@ public class StatusEffectScript : MonoBehaviour
 
     private void Update()
     {
-        //Regenerate
+        //-------Regenerate-------
         if (RegenerateEffect)
         {
+            //Regenerate Timer
             if (regenerateTimer < RegenerateTotalTime)
             {
                 regenerateTimer += Time.deltaTime;
 
-                ownerHealthFillAmount.fillAmount += (RegenerateAmountPerSecond * Time.deltaTime) / ownerMaxHealth;
+                //Adjust Owner's Health
+                if (isPlayer)
+                {
+                    playerScript.CurHealth += (RegenerateAmountPerSecond * Time.deltaTime);
+                }
+                else
+                {
+                    enemyScript.CurHealth += (RegenerateAmountPerSecond * Time.deltaTime);
+                }
             }
             else
             {
+                //Remove Status Effect
                 Destroy(gameObject);
             }
         }

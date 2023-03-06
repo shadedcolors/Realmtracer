@@ -18,7 +18,7 @@ public class EnemyScript : MonoBehaviour
     [SerializeField] public GameObject enemyStatusEffectPanel;
 
     //Enemy Health Bar
-    public Image enemyHealthBar;
+    private Image healthImage;
 
     //Enemy Name Text
     private TMP_Text enemyNameText;
@@ -43,7 +43,8 @@ public class EnemyScript : MonoBehaviour
     private float spellCastPreCooldownTimer;
 
     //Health
-    private float enemyHealth;
+    private float maxHealth;
+    private float curHealth;
 
     //-------Properties-------
     public float SpellCastInterval
@@ -70,10 +71,21 @@ public class EnemyScript : MonoBehaviour
         set { spellCastPreCooldownTimer = value; }
     }
 
-    public float EnemyHealth
+    public float CurHealth
     {
-        get { return enemyHealth; }
-        set { enemyHealth = value; }
+        get { return curHealth; }
+        set
+        {
+            curHealth = value;
+            if (curHealth < 0) { curHealth = 0; }
+            if (curHealth > MaxHealth) { curHealth = MaxHealth; }
+        }
+    }
+
+    public float MaxHealth
+    {
+        get { return maxHealth; }
+        set { maxHealth = value; }
     }
 
     // Start is called before the first frame update
@@ -83,7 +95,7 @@ public class EnemyScript : MonoBehaviour
         gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
 
         //Get Parts of the Enemy Prefab
-        enemyHealthBar = transform.Find("Enemy Health Bar").GetComponent<Image>();
+        healthImage = transform.Find("Enemy Health Bar").GetComponent<Image>();
         enemyNameText = transform.Find("Enemy Name").GetComponent<TMP_Text>();
         currentEnemyImage = transform.Find("Enemy Sprite").GetComponent<Image>();
 
@@ -96,6 +108,9 @@ public class EnemyScript : MonoBehaviour
 
         //Set Spell Cast PreCooldown
         SpellCastPreCooldownTimer = SpellCastPreCooldown;
+
+        //Set Current Health
+        CurHealth = MaxHealth;
     }
 
     // Update is called once per frame
@@ -111,6 +126,8 @@ public class EnemyScript : MonoBehaviour
         //Choose Next Spell to use
         if (gameManager.inCombat)
         {
+            healthImage.fillAmount = CurHealth / MaxHealth;
+
             ChooseNextSpellToUse();
             DoSpellCastInterval();
         }

@@ -4,8 +4,9 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.EventSystems;
 
-public class SpellScript : MonoBehaviour
+public class SpellScript : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     //Get Game Manager
     private GameManager gameManager;
@@ -41,6 +42,9 @@ public class SpellScript : MonoBehaviour
 
     //Next Spell To Use Outline
     [SerializeField] public Image nextSpellOutline;
+
+    //Spell Name
+    public string spellName;
 
     //-------Spell Effects-------
     private bool dealsDamage;
@@ -267,15 +271,20 @@ public class SpellScript : MonoBehaviour
             if (spellTarget != gameManager.gameObject)
             {
                 //Damage the target enemy
-                spellTarget.GetComponent<EnemyScript>().enemyHealthBar.fillAmount -= DamageAmount / spellTarget.GetComponent<EnemyScript>().EnemyHealth;
+                spellTarget.GetComponent<EnemyScript>().CurHealth -= DamageAmount;
             }
             else
             {
                 //Otherwise damage the player
-                spellTarget.GetComponent<GameManager>().healthSphere.fillAmount -= DamageAmount / spellTarget.GetComponent<GameManager>().PlayerHealth;
+                spellTarget.GetComponent<GameManager>().CurHealth -= DamageAmount;
             }
         }
 
+        AddStatusEffects();
+    }
+
+    public void AddStatusEffects()
+    {
         //Get the correct Status Effect Panel
         GameObject ownerPanel = GetStatusEffectPanel();
 
@@ -284,8 +293,8 @@ public class SpellScript : MonoBehaviour
         {
             var statusEffect = Instantiate(statusEffectPrefab, ownerPanel.transform).GetComponent<StatusEffectScript>();
 
-            statusEffect.ownerPanel = ownerPanel;
-            statusEffect.ownerObject = SpellOwner;
+            //statusEffect.ownerPanel = ownerPanel;
+            statusEffect.statusEffectOwner = SpellOwner;
 
             statusEffect.RegenerateEffect = RegenerateEffect;
             statusEffect.RegenerateAmountPerSecond = RegenerateAmountPerSecond;
@@ -304,5 +313,52 @@ public class SpellScript : MonoBehaviour
         {
             return SpellOwner.GetComponent<EnemyScript>().enemyStatusEffectPanel;
         }
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        //Make Delegate for Tooltip
+        System.Func<string> getTooltipTextFunc = () =>
+        {
+            string tooltipText = "";
+
+            //Add Spell Name
+            tooltipText += "<color=#00ff00>" + spellName + "</color>\n";
+
+            //Add Damage
+            if (DealsDamage)
+            {
+                tooltipText += "Damage: " + DamageAmount + "\n";
+            }
+
+            //Add Regenerate
+            if (RegenerateEffect)
+            {
+                tooltipText += "Adds Regenerate: " + RegenerateAmountPerSecond + "DPS for " + RegenerateTotalTime + "seconds\n";
+            }
+
+            //Add Mana Cost
+            tooltipText += "Mana Cost: " + SpellManaCost + "\n";
+
+            //Add Cooldown
+            tooltipText += "Cooldown: " + SpellCooldown + "\n";
+
+            //Add Spell Type
+            tooltipText += "Type: " + SpellType + "\n";
+
+            //Add Max Uses Per Combat
+            tooltipText += "Max Uses Per Combat: " + SpellMaxUsesPerCombat + "\n";
+
+            //Add Max Uses Per Game
+            tooltipText += "Max Uses Per Game: " + SpellMaxUsesPerGame + "\n";
+
+            return tooltipText;
+        };
+        TooltipScript.ShowTooltip_Static(getTooltipTextFunc);
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        TooltipScript.HideTooltip_Static();
     }
 }

@@ -21,16 +21,18 @@ public class EnemyScript : MonoBehaviour
     private Image healthImage;
 
     //Enemy Name Text
-    private TMP_Text enemyNameText;
+    public TMP_Text enemyNameText;
 
     //Enemy Sprite
-    private Image currentEnemyImage;
+    public Image currentEnemyImage;
 
     //Enemy Sprites
     [SerializeField] private Sprite[] allEnemyImages;
 
     //Next Spell Chosen
     private SpellScript nextSpellToUse;
+
+    [SerializeField] private TMP_Text enemyHealthBarText;
 
     //-------Enemy Stats-------
 
@@ -99,10 +101,6 @@ public class EnemyScript : MonoBehaviour
         enemyNameText = transform.Find("Enemy Name").GetComponent<TMP_Text>();
         currentEnemyImage = transform.Find("Enemy Sprite").GetComponent<Image>();
 
-        //Set the Enemy's Sprite and Name Randomly
-        currentEnemyImage.sprite = allEnemyImages[Random.Range(0, allEnemyImages.Length)];
-        enemyNameText.text = currentEnemyImage.sprite.name;
-
         //Set Spell Cast Interval
         SpellCastIntervalTimer = SpellCastInterval;
 
@@ -116,17 +114,14 @@ public class EnemyScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //Enemy Spell Creation Test
-        //-------Player Spell Creation Test-------
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            gameManager.CreateSpell(enemySpellInventoryPanel, gameObject, gameManager.gameObject);
-        }
-
         //Choose Next Spell to use
         if (gameManager.inCombat)
         {
+            //Draw Health Bar
             healthImage.fillAmount = CurHealth / MaxHealth;
+
+            //Draw Health Bar Text
+            enemyHealthBarText.text = Mathf.Round(CurHealth) + "/" + MaxHealth;
 
             ChooseNextSpellToUse();
             DoSpellCastInterval();

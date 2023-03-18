@@ -1,9 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class StatusEffectScript : MonoBehaviour
+public class StatusEffectScript : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     //Owner Panel
     //public GameObject ownerPanel;
@@ -23,6 +24,8 @@ public class StatusEffectScript : MonoBehaviour
 
 
     //-------EFFECTS-------
+    public string statusEffectName;
+
     //Regenerate
     private bool regenerateEffect;
     private float regenerateAmountPerSecond;
@@ -47,6 +50,32 @@ public class StatusEffectScript : MonoBehaviour
     {
         get { return regenerateTotalTime; }
         set { regenerateTotalTime = value; }
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        //Make Delegate for Tooltip
+        System.Func<string> getTooltipTextFunc = () =>
+        {
+            string tooltipText = "";
+
+            //Add Spell Name
+            tooltipText += "<color=#ff0000>" + statusEffectName + "</color>\n";
+
+            //Add Regenerate
+            if (RegenerateEffect)
+            {
+                tooltipText += "Adds Regenerate: " + RegenerateAmountPerSecond + "DPS for " + RegenerateTotalTime + "seconds\n";
+            }
+
+            return tooltipText;
+        };
+        TooltipScript.ShowTooltip_Static(getTooltipTextFunc);
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        TooltipScript.HideTooltip_Static();
     }
 
     private void Start()
@@ -96,6 +125,7 @@ public class StatusEffectScript : MonoBehaviour
             else
             {
                 //Remove Status Effect
+                TooltipScript.HideTooltip_Static();
                 Destroy(gameObject);
             }
         }

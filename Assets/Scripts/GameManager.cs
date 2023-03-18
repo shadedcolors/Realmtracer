@@ -23,14 +23,25 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject spellQueuePanel;
     [SerializeField] public GameObject statusEffectPanel;
 
+    //Between Combat Stuff
+    [SerializeField] private GameObject betweenCombatScreen;
+
+    [SerializeField] private BetweenCombatOptionScript[] spellOptions;
+
     //All Spell Icons
     [SerializeField] private Sprite[] allSpellImages;
+
+    //All Spells
+    [SerializeField] public SpellScriptableObject[] allSpellScriptableObjects;
+
+    //All Enemies
+    [SerializeField] public EnemyScriptableObject[] allEnemyScriptableObjects;
 
     //Toggle Combat
     public bool inCombat = false;
 
     //List of Enemies
-    public List<GameObject> listOfEnemies = new List<GameObject>();
+    public List<GameObject> listOfEnemies = new List<GameObject>(); //DELETE POSSIBLY????
 
     //-------SPELL QUEUE STUFF-------
     //Spell Queue Length
@@ -152,63 +163,97 @@ public class GameManager : MonoBehaviour
             inCombat = !inCombat;
         }
 
-        //-------Player Spell Creation Test-------
-        if (Input.GetKeyDown(KeyCode.Tab))
+        //Open Between Combat Screen
+        if (Input.GetKeyDown(KeyCode.Return))
         {
-            CreateSpell(spellInventoryPanel, gameObject, listOfEnemies[0]);
-        }
+            betweenCombatScreen.SetActive(!betweenCombatScreen.activeSelf);
 
-        //-------Enemy Creation Test-------
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            EnemyScript newEnemy = Instantiate(enemyPrefab, enemyPanel.transform).GetComponent<EnemyScript>();
+            //Reset spell pool???
 
-            newEnemy.SpellCastInterval = 1f;
-            newEnemy.SpellCastPreCooldown = 2f;
-            newEnemy.MaxHealth = 10f;
+            //Set all 3 Spell Options
+            for (int i = 0; i < 3; i++)
+            {
+                //Get a random spell from the spell pool
+                int randomSpell = Random.Range(0, allSpellScriptableObjects.Length);
 
-            listOfEnemies.Add(newEnemy.gameObject);
+                SpellScriptableObject spellScriptableObject = allSpellScriptableObjects[randomSpell];
+
+                spellOptions[i].SetSpellOption(spellScriptableObject, spellScriptableObject.spellName, spellScriptableObject.spellIcon);
+            }
         }
     }
+
+    //Create Enemy
+    public GameObject CreateEnemy()
+    {
+        //Create Enemy Prefab
+        EnemyScript newEnemy = Instantiate(enemyPrefab, enemyPanel.transform).GetComponent<EnemyScript>();
+
+        //Get a random enemy scriptable object
+        int randomEnemy = Random.Range(0, allEnemyScriptableObjects.Length);
+
+        EnemyScriptableObject pickedEnemySO = allEnemyScriptableObjects[randomEnemy];
+
+        //Set Enemy Name and Sprite
+        newEnemy.currentEnemyImage.sprite = pickedEnemySO.enemySprite;
+        newEnemy.enemyNameText.text = pickedEnemySO.enemyName;
+
+        //Set Enemy Stats
+        newEnemy.SpellCastInterval = pickedEnemySO.enemySpellCastInterval;
+        newEnemy.SpellCastPreCooldown = pickedEnemySO.enemySpellCastPreCooldown;
+        newEnemy.MaxHealth = pickedEnemySO.enemyMaxHealth;
+
+        //Create Enemy Spells based on Enemy SO
+        for (int i = 0; i < pickedEnemySO.enemySpells.Length; i++)
+        {
+            CreateSpell(newEnemy.enemySpellInventoryPanel, newEnemy.gameObject, gameObject, pickedEnemySO.enemySpells[i]);
+        }
+
+        //Add New Enemy to Enemy List
+        listOfEnemies.Add(newEnemy.gameObject);
+
+        //Return Enemy Object
+        return newEnemy.gameObject;
+    }
     
-    //Create Spell Test
-    public void CreateSpell(GameObject panel, GameObject owner, GameObject target)
+    //Create Spell
+    public void CreateSpell(GameObject panel, GameObject owner, GameObject target, SpellScriptableObject spellSO)
     {
         //Create New Spell
         SpellScript newSpell = Instantiate(spellPrefab, panel.transform).GetComponent<SpellScript>();
 
         //Set Spell Icon
-        newSpell.transform.Find("Spell Sprite").GetComponent<Image>().sprite = allSpellImages[Random.Range(0, allSpellImages.Length)]; //Change this to a set value later!
+        newSpell.transform.Find("Spell Sprite").GetComponent<Image>().sprite = spellSO.spellIcon;
 
-        newSpell.spellName = "Slash";
+        newSpell.spellName = spellSO.spellName;
 
         //Set Spell Owner
         newSpell.SpellOwner = owner;
 
         //Set Spell Target
         newSpell.SpellTarget = target;
-            
-        //Set Spell Effect - Damage
-        newSpell.DealsDamage = true;
-        newSpell.DamageAmount = 10;
 
-        newSpell.RegenerateEffect = true;
-        newSpell.RegenerateAmountPerSecond = 1f;
-        newSpell.RegenerateTotalTime = 4f;
+        //Set Spell Effect - Damage
+        newSpell.DealsDamage = spellSO.dealsDamage;
+        newSpell.DamageAmount = spellSO.damageAmount;
+
+        newSpell.RegenerateEffect = spellSO.regenerateEffect;
+        newSpell.RegenerateAmountPerSecond = spellSO.regenerateAmountPerSecond;
+        newSpell.RegenerateTotalTime = spellSO.regenerateTotalTime;
 
         //Set Spell Mana Cost
-        newSpell.SpellManaCost = 1;
+        newSpell.SpellManaCost = spellSO.spellManaCost;
 
         //Set Spell Cooldown
-        newSpell.SpellCooldown = 4;
+        newSpell.SpellCooldown = spellSO.spellCooldown;
 
         //Set Spell Max Uses Per Combat
-        newSpell.SpellMaxUsesPerCombat = -1;
+        newSpell.SpellMaxUsesPerCombat = spellSO.spellMaxUsesPerCombat;
 
         //Set Spell Max Uses Per Game
-        newSpell.SpellMaxUsesPerGame = -1;
+        newSpell.SpellMaxUsesPerGame = spellSO.spellMaxUsesPerGame;
 
         //Set Spell Type
-        newSpell.SpellType = "Physical";
+        newSpell.SpellType = spellSO.spellType;
     }
 }

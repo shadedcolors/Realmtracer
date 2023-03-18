@@ -4,7 +4,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using UnityEngine.EventSystems;
+using UnityEngine.EventSystems; 
 
 public class SpellScript : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
@@ -234,9 +234,11 @@ public class SpellScript : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
                 {
                     for (int i = 0; i < gameManager.spellInventoryPanel.transform.childCount; i++)
                     {
-                        gameManager.spellInventoryPanel.transform.GetChild(i).GetComponent<SpellScript>().spellCooldownImage.enabled = true;
-                        gameManager.spellInventoryPanel.transform.GetChild(i).GetComponent<SpellScript>().spellCooldownText.enabled = true;
-                        gameManager.spellInventoryPanel.transform.GetChild(i).GetComponent<SpellScript>().spellCooldownAmount = spellCooldown;
+                        var spell = gameManager.spellInventoryPanel.transform.GetChild(i).GetComponent<SpellScript>();
+
+                        spell.spellCooldownImage.enabled = true;
+                        spell.spellCooldownText.enabled = true;
+                        spell.spellCooldownAmount = spellCooldown;
                     } 
                 }
                 //Set cooldown for enemy
@@ -244,9 +246,11 @@ public class SpellScript : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
                 {
                     for (int i = 0; i < spellOwner.GetComponent<EnemyScript>().enemySpellInventoryPanel.transform.childCount; i++)
                     {
-                        spellOwner.GetComponent<EnemyScript>().enemySpellInventoryPanel.transform.GetChild(i).GetComponent<SpellScript>().spellCooldownImage.enabled = true;
-                        spellOwner.GetComponent<EnemyScript>().enemySpellInventoryPanel.transform.GetChild(i).GetComponent<SpellScript>().spellCooldownText.enabled = true;
-                        spellOwner.GetComponent<EnemyScript>().enemySpellInventoryPanel.transform.GetChild(i).GetComponent<SpellScript>().spellCooldownAmount = spellCooldown;
+                        var spell = spellOwner.GetComponent<EnemyScript>().enemySpellInventoryPanel.transform.GetChild(i).GetComponent<SpellScript>();
+
+                        spell.spellCooldownImage.enabled = true;
+                        spell.spellCooldownText.enabled = true;
+                        spell.spellCooldownAmount = spellCooldown;
                     }
                 }
 
@@ -296,6 +300,7 @@ public class SpellScript : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
             //statusEffect.ownerPanel = ownerPanel;
             statusEffect.statusEffectOwner = SpellOwner;
 
+            statusEffect.statusEffectName = "Regenerate";
             statusEffect.RegenerateEffect = RegenerateEffect;
             statusEffect.RegenerateAmountPerSecond = RegenerateAmountPerSecond;
             statusEffect.RegenerateTotalTime = RegenerateTotalTime;

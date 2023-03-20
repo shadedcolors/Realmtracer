@@ -9,6 +9,7 @@ public class EnemyScriptableObject : ScriptableObject
 
     public float enemySpellCastInterval = 0f;
     public float enemySpellCastPreCooldown = 0f;
+    public float enemySpellCastUsing = 0f;
     public float enemyMaxHealth = 0f;
 
     public SpellScriptableObject[] enemySpells;

@@ -28,7 +28,7 @@ public class SpellScript : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     //Get Spell PreCooldown Text
     [SerializeField] public TextMeshProUGUI spellPreCooldownText;
 
-    [SerializeField] public Image spellPreCooldownShade;
+    [SerializeField] public Image spellUsingShade;
 
     //Spell Owner
     private GameObject spellOwner;
@@ -152,6 +152,9 @@ public class SpellScript : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 
         //Set PreCooldown Info
         spellPreCooldownText.enabled = false;
+
+        //Set Using Info
+        spellUsingShade.enabled = false;
 
         //Disable Next Spell Outline
         nextSpellOutline.enabled = false;

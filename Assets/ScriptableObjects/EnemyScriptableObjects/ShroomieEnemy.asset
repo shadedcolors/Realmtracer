@@ -14,8 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyName: Shroomie
   enemySprite: {fileID: 21300000, guid: 1c9c9324887f0a045ab625102a61002f, type: 3}
-  enemySpellCastInterval: 1
-  enemySpellCastPreCooldown: 2
+  enemySpellCastInterval: 0
+  enemySpellCastPreCooldown: 1
+  enemySpellCastUsing: 3
   enemyMaxHealth: 10
   enemySpells:
   - {fileID: 11400000, guid: 27b99d8b96497f24b85302fd182c07b1, type: 2}

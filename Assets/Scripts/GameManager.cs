@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Data.Common;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -20,7 +21,7 @@ public class GameManager : MonoBehaviour
     //Panels
     [SerializeField] private GameObject enemyPanel;
     [SerializeField] public GameObject spellInventoryPanel;
-    [SerializeField] private GameObject spellQueuePanel;
+    [SerializeField] public GameObject spellQueuePanel;
     [SerializeField] public GameObject statusEffectPanel;
 
     //Between Combat Stuff
@@ -48,7 +49,7 @@ public class GameManager : MonoBehaviour
     private int spellQueueLength = 5;
 
     //Spell Queue Timer
-    private float spellQueueTimeAmount = 5.0f;
+    private float spellQueueTimeAmount = 8.3f;
 
     //Empty Queue check
     private bool isQueueEmpty = true;
@@ -110,11 +111,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void Start()
-    {
-        
-    }
-
     // Update is called once per frame
     void Update()
     {
@@ -122,7 +118,6 @@ public class GameManager : MonoBehaviour
         if (inCombat)
         {
             healthImage.fillAmount = CurHealth / MaxHealth;
-            Debug.Log(healthImage.fillAmount);
 
             //-------Do spell queue timer stuff-------
             //If the queue is not empty...
@@ -151,16 +146,8 @@ public class GameManager : MonoBehaviour
 
                     //Reset spell queue progress bar
                     spellQueueTimer.fillAmount = 1;
-
-                    Debug.Log(spellQueuePanel.transform.childCount);
                 }
             }
-        }
-
-        //Toggle Combat
-        if (Input.GetKeyDown(KeyCode.S))
-        {
-            inCombat = !inCombat;
         }
 
         //Open Between Combat Screen
@@ -183,6 +170,20 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    //Check for end of combat
+    public void EndCombatCheck()
+    {
+        //check if all enemies are dead
+        if (enemyPanel.transform.childCount <= 0)
+        {
+            //Open Between Combat Screen
+            betweenCombatScreen.SetActive(true);
+
+            //Stop Combat
+            inCombat = false;
+        }
+    }
+
     //Create Enemy
     public GameObject CreateEnemy()
     {
@@ -201,6 +202,7 @@ public class GameManager : MonoBehaviour
         //Set Enemy Stats
         newEnemy.SpellCastInterval = pickedEnemySO.enemySpellCastInterval;
         newEnemy.SpellCastPreCooldown = pickedEnemySO.enemySpellCastPreCooldown;
+        newEnemy.SpellCastUsing = pickedEnemySO.enemySpellCastUsing;
         newEnemy.MaxHealth = pickedEnemySO.enemyMaxHealth;
 
         //Create Enemy Spells based on Enemy SO

@@ -36,6 +36,12 @@ public class BetweenCombatOptionScript : MonoBehaviour
     //Setup Combat
     public void StartCombat()
     {
+        //Clear the spell Queue
+        for (int i = 0; i < gameManager.spellQueuePanel.transform.childCount; i++)
+        {
+            Destroy(gameManager.spellQueuePanel.transform.GetChild(i).gameObject);
+        }
+
         //Create the newly acquired player spell
         gameManager.CreateSpell(spellInventoryPanel, gameManager.gameObject, null, spellSO);
         //CreateItem();
@@ -50,6 +56,10 @@ public class BetweenCombatOptionScript : MonoBehaviour
             spellInventoryPanel.transform.GetChild(i).gameObject.GetComponent<SpellScript>().SpellTarget = newEnemy;
         }
 
+        //Start the Battle
+        gameManager.inCombat = true;
+
+        //Close Between Combat screen
         betweenCombatScreen.SetActive(false);
     }
 }

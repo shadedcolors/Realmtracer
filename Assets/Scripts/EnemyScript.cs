@@ -44,6 +44,10 @@ public class EnemyScript : MonoBehaviour
     private float spellCastPreCooldown;
     private float spellCastPreCooldownTimer;
 
+    //Spell Cast Using Timer
+    private float spellCastUsing;
+    private float spellCastUsingTimer;
+
     //Health
     private float maxHealth;
     private float curHealth;
@@ -71,6 +75,18 @@ public class EnemyScript : MonoBehaviour
     {
         get { return spellCastPreCooldownTimer; }
         set { spellCastPreCooldownTimer = value; }
+    }
+
+    public float SpellCastUsing
+    {
+        get { return spellCastUsing; }
+        set { spellCastUsing = value; }
+    }
+
+    public float SpellCastUsingTimer
+    {
+        get { return spellCastUsingTimer; }
+        set { spellCastUsingTimer = value; }
     }
 
     public float CurHealth
@@ -102,10 +118,13 @@ public class EnemyScript : MonoBehaviour
         currentEnemyImage = transform.Find("Enemy Sprite").GetComponent<Image>();
 
         //Set Spell Cast Interval
-        SpellCastIntervalTimer = SpellCastInterval;
+        SpellCastIntervalTimer = SpellCastInterval * Random.Range(0.5f, 1.5f);
 
         //Set Spell Cast PreCooldown
-        SpellCastPreCooldownTimer = SpellCastPreCooldown;
+        SpellCastPreCooldownTimer = SpellCastPreCooldown * Random.Range(0.5f, 1.5f);
+
+        //Set Spell Cast Using
+        SpellCastUsingTimer = SpellCastUsing * Random.Range(0.5f, 1.5f);
 
         //Set Current Health
         CurHealth = MaxHealth;
@@ -123,6 +142,16 @@ public class EnemyScript : MonoBehaviour
             //Draw Health Bar Text
             enemyHealthBarText.text = Mathf.Round(CurHealth) + "/" + MaxHealth;
 
+            //Destroy Enemy on Death
+            if (CurHealth <= 0)
+            {
+                transform.SetParent(null);
+                Destroy(gameObject);
+
+                //Check for end of combat
+                gameManager.EndCombatCheck();
+            }
+
             ChooseNextSpellToUse();
             DoSpellCastInterval();
         }
@@ -136,7 +165,7 @@ public class EnemyScript : MonoBehaviour
         if (nextSpellToUse == null)
         {
             //Choose a new spell 
-            randomSpell = Random.Range(0, enemySpellInventoryPanel.transform.childCount-1);
+            randomSpell = Random.Range(0, enemySpellInventoryPanel.transform.childCount);
 
             //Show Next Spell Outline
             enemySpellInventoryPanel.transform.GetChild(randomSpell).GetComponent<SpellScript>().nextSpellOutline.enabled = true;
@@ -167,9 +196,6 @@ public class EnemyScript : MonoBehaviour
     {
         if (SpellCastPreCooldownTimer > 0)
         {
-            //Shade Spell
-
-
             //Show PreCooldown Number
             nextSpellToUse.spellPreCooldownText.enabled = true;
             nextSpellToUse.spellPreCooldownText.text = Mathf.Round(SpellCastPreCooldownTimer).ToString();
@@ -183,29 +209,54 @@ public class EnemyScript : MonoBehaviour
             nextSpellToUse.spellPreCooldownText.enabled = false;
 
             //Add Spell to Queue When PreCooldown is done
-            AddSpellToQueue(); //Draw red or green to determine success
-
-            //Reset Spell Cast Interval and PreCooldown
-            SpellCastIntervalTimer = SpellCastInterval;
-            SpellCastPreCooldownTimer = SpellCastPreCooldown;
+            TryAddSpellToQueue(); //Draw red or green to determine success
         }
     }
 
-    public void AddSpellToQueue()
+    public void TryAddSpellToQueue()
     {
         //Check for cooldown before adding the spell to the queue
         if (nextSpellToUse.spellCooldownAmount <= 0)
         {
-            if (nextSpellToUse.AddSpellToQueue())
+            //Countdown spell Using Timer
+            if (SpellCastUsingTimer > 0)
             {
-                //Hide Next Spell Outline
-                for (int i = 0; i < enemySpellInventoryPanel.transform.childCount; i++)
-                {
-                    enemySpellInventoryPanel.transform.GetChild(i).GetComponent<SpellScript>().nextSpellOutline.enabled = false;
-                }
+                //Shade Spell
+                nextSpellToUse.spellUsingShade.enabled = true;
 
-                //Reset Next Spell to use
-                nextSpellToUse = null;
+                //Count Using Timer
+                SpellCastUsingTimer -= Time.deltaTime;
+
+                //Keep trying to put next spell on the queue
+                if (nextSpellToUse.AddSpellToQueue())
+                {
+                    //Hide Next Spell Outline
+                    for (int i = 0; i < enemySpellInventoryPanel.transform.childCount; i++)
+                    {
+                        enemySpellInventoryPanel.transform.GetChild(i).GetComponent<SpellScript>().nextSpellOutline.enabled = false;
+                    }
+
+                    //Unshade Spell
+                    nextSpellToUse.spellUsingShade.enabled = false;
+
+                    //Reset Next Spell to use
+                    nextSpellToUse = null;
+
+                    //Reset all Timers when successfully putting next spell on the queue
+                    SpellCastIntervalTimer = SpellCastInterval * Random.Range(0.5f, 1.5f);
+                    SpellCastPreCooldownTimer = SpellCastPreCooldown * Random.Range(0.5f, 1.5f);
+                    SpellCastUsingTimer = SpellCastUsing * Random.Range(0.5f, 1.5f);
+                }
+            }
+            else
+            {
+                //Unshade Spell
+                nextSpellToUse.spellUsingShade.enabled = false;
+
+                //Reset all Timers when Spell Cast using Timer ends
+                SpellCastIntervalTimer = SpellCastInterval * Random.Range(0.5f, 1.5f);
+                SpellCastPreCooldownTimer = SpellCastPreCooldown * Random.Range(0.5f, 1.5f);
+                SpellCastUsingTimer = SpellCastUsing * Random.Range(0.5f, 1.5f);
             }
         }
     }

@@ -405,10 +405,11 @@ MonoBehaviour:
   spellCooldownImage: {fileID: 3265387778024567905}
   spellCooldownText: {fileID: 3233898197830291780}
   spellPreCooldownText: {fileID: 5046962027283905974}
-  spellPreCooldownShade: {fileID: 5089182678510868269}
+  spellUsingShade: {fileID: 5089182678510868269}
   playerOwnedSprite: {fileID: 21300000, guid: 1d562b37ea36a4e4fae3debef07831c2, type: 3}
   enemyOwnedSprite: {fileID: 21300000, guid: 55ea6f38ee4941146a6ec1d041b20ebe, type: 3}
   nextSpellOutline: {fileID: 4659119272484464938}
+  spellName: 
   spellCooldownAmount: 0
 --- !u!222 &-1116311612522108076
 CanvasRenderer:
@@ -430,12 +431,12 @@ GameObject:
   - component: {fileID: 3348254698727913439}
   - component: {fileID: 5089182678510868269}
   m_Layer: 5
-  m_Name: Spell PreCooldown Shade
+  m_Name: Spell Using Shade
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &4074693436147743429
 RectTransform:
   m_ObjectHideFlags: 0
@@ -454,7 +455,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 32, y: 32}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3348254698727913439
 CanvasRenderer:

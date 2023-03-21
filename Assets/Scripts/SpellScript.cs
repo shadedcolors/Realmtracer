@@ -198,7 +198,15 @@ public class SpellScript : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         //Only allow clicking on a spell if the owner is the player
         if (spellOwner == gameManager.gameObject)
         {
-            AddSpellToQueue();
+            //Check for mana
+            if (gameManager.CurMana >= SpellManaCost)
+            {
+                AddSpellToQueue();
+            }
+            else
+            {
+                Debug.Log("Not Enough Mana...");
+            }
         }
     }
 
@@ -211,6 +219,9 @@ public class SpellScript : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
             //Check for open slot in spell queue
             if (spellQueuePanel.transform.childCount < gameManager.SpellQueueLength)
             {
+                //Use Mana when adding spell to queue
+                gameManager.CurMana -= SpellManaCost;
+
                 //Create queue spell
                 var newQueueSpell = Instantiate(queueSpellPrefab, spellQueuePanel.transform);
 

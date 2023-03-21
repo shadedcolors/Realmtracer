@@ -1880,7 +1880,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tooltip: {fileID: 0}
   healthImage: {fileID: 704038579}
-  manaSphere: {fileID: 413330627}
+  manaImage: {fileID: 413330627}
   spellQueueTimer: {fileID: 317162341}
   enemyPrefab: {fileID: 5530804152495959115, guid: 07e1687cf3b108641bf2092d0f3c562b, type: 3}
   spellPrefab: {fileID: 4622177197364391185, guid: 63c5022b737ad7d4084dd8291a7980c6, type: 3}

@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviour
 
     //Progress Bars
     [SerializeField] private Image healthImage;
-    [SerializeField] public Image manaSphere;
+    [SerializeField] public Image manaImage;
     [SerializeField] private Image spellQueueTimer;
 
     //Prefabs
@@ -49,16 +49,18 @@ public class GameManager : MonoBehaviour
     private int spellQueueLength = 5;
 
     //Spell Queue Timer
-    private float spellQueueTimeAmount = 8.3f;
+    private float spellQueueTimeAmount = 5.0f;
 
     //Empty Queue check
     private bool isQueueEmpty = true;
 
     //-------Player Stats-------
-    private float maxHealth = 15;
-    private float curHealth = 15;
-    private float maxMana = 15;
-    private float curMana = 15;
+    private float maxHealth = 15f;
+    private float curHealth = 15f;
+    private float maxMana = 15f;
+    private float curMana = 15f;
+
+    private float manaRegenerationPerSecond = 1f;
 
     //-------Properties-------
     public int SpellQueueLength
@@ -111,13 +113,27 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public float ManaRegenerationPerSecond
+    {
+        get { return manaRegenerationPerSecond; }
+        set { manaRegenerationPerSecond = value; }
+    }
+
     // Update is called once per frame
     void Update()
     {
         //Check if in Combat
         if (inCombat)
         {
+            //Set Health and Mana Sphere Images
             healthImage.fillAmount = CurHealth / MaxHealth;
+            manaImage.fillAmount = CurMana / MaxMana;
+
+            //Regenerate Mana Automatically
+            if (CurMana < MaxMana)
+            {
+                CurMana += Time.deltaTime * ManaRegenerationPerSecond;
+            }
 
             //-------Do spell queue timer stuff-------
             //If the queue is not empty...

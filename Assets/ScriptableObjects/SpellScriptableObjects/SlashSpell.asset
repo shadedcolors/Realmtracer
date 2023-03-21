@@ -19,7 +19,7 @@ MonoBehaviour:
   regenerateEffect: 0
   regenerateAmountPerSecond: 0
   regenerateTotalTime: 0
-  spellManaCost: 1
+  spellManaCost: 4
   spellCooldown: 1
   spellMaxUsesPerCombat: -1
   spellMaxUsesPerGame: -1
